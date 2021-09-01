@@ -1,0 +1,7 @@
+16:59:13.366 [main] ERROR com.company.ui.actions.roomsActions.AddNewRoomAction - Wrong starts quantity
+16:59:22.021 [main] ERROR serialization.Serialization - wrong file
+16:59:22.022 [main] ERROR serialization.Serialization - wrong file
+16:59:22.023 [main] ERROR serialization.Serialization - wrong file
+16:59:22.024 [main] ERROR serialization.Serialization - wrong file
+16:59:22.025 [main] ERROR serialization.Serialization - wrong file
+19:33:07.744 [main] ERROR actions.roomsActions.AddNewRoomAction - Wrong starts quantity

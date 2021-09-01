@@ -1,0 +1,4 @@
+# Project exclude paths
+/Repositories/target/
+/target/
+/WebApp/target/
