@@ -2,3 +2,6 @@
 /Repositories/target/
 /target/
 /WebApp/target/
+*.iml
+*.meta
+*.xml

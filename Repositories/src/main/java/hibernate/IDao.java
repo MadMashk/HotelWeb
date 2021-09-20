@@ -1,6 +1,8 @@
 package hibernate;
 
 import hibernate.sortings.ISortType;
+import model.Client;
+import model.Room;
 
 import java.util.List;
 

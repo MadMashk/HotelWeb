@@ -12,12 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class GotServicesDao {
+public class GotServicesDao implements IDao<GotServices> {
     @Autowired
     private HibernateSessionFactoryUtil hibernateSessionFactoryUtil;
     @Autowired
     private SortingNavigator sortingNavigator;
-
+    @Override
     public  void save(GotServices o) {
         Session session = hibernateSessionFactoryUtil.getSessionFactory().openSession();
         Transaction tx = session.beginTransaction();
@@ -27,6 +27,7 @@ public class GotServicesDao {
     }
 
 
+    @Override
     public  void delete(GotServices o) {
         Session session = hibernateSessionFactoryUtil.getSessionFactory().openSession();
         Transaction tx = session.beginTransaction();
@@ -35,6 +36,8 @@ public class GotServicesDao {
         session.close();
     }
 
+
+    @Override
     public List<GotServices> getAll(ISortType sortType) {
         Session session = hibernateSessionFactoryUtil.getSessionFactory().openSession();
         List<GotServices> gotServicesList = new ArrayList<>();
@@ -53,6 +56,9 @@ public class GotServicesDao {
         session.close();
         return gotServicesList;
     }
+
+
+    @Override
     public  List<GotServices> getAll() {
         Session session = hibernateSessionFactoryUtil.getSessionFactory().openSession();
         List<GotServices> list= session.createQuery("from GotServices ").getResultList();

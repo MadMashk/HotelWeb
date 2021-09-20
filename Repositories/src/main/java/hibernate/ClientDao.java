@@ -1,6 +1,4 @@
 package hibernate;
-
-
 import hibernate.sortings.ISortType;
 import hibernate.sortings.SortingNavigator;
 import model.Client;
@@ -8,7 +6,6 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +24,7 @@ public class ClientDao  implements IDao<Client> {
         session.close();
     }
 
+
     @Override
     public  void delete(Client o) {
         Session session = hibernateSessionFactoryUtil.getSessionFactory().openSession();
@@ -40,6 +38,7 @@ public class ClientDao  implements IDao<Client> {
     public Client getOne (String passNumber) {
         return hibernateSessionFactoryUtil.getSessionFactory().openSession().get(Client.class, passNumber);
     }
+
 
     @Override
     public  List<Client> getAll(ISortType sortType) {

@@ -25,6 +25,7 @@ public class RentDao implements IDao<Rent>{
         session.close();
     }
 
+
     @Override
     public  void delete(Rent o) {
         Session session = hibernateSessionFactoryUtil.getSessionFactory().openSession();
@@ -33,6 +34,8 @@ public class RentDao implements IDao<Rent>{
         tx.commit();
         session.close();
     }
+
+
     @Override
     public List<Rent> getAll(ISortType sortType) {
         Session session = hibernateSessionFactoryUtil.getSessionFactory().openSession();
@@ -46,6 +49,7 @@ public class RentDao implements IDao<Rent>{
         session.close();
         return rentList;
     }
+
 
     @Override
     public  List<Rent> getAll() {
