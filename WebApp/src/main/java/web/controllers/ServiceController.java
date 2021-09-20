@@ -3,7 +3,6 @@ import model.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import service.ServiceService;
-
 import java.util.List;
 
 @RestController
@@ -20,7 +19,7 @@ public class ServiceController {
     public Service addService  (@RequestBody Service service){
         return serviceService.addService(service);
     }
-    @RequestMapping(value = "/", method = RequestMethod.PUT, headers = "Accept=application/json") //TODO change обновить услугу
+    @RequestMapping(value = "/", method = RequestMethod.PUT, headers = "Accept=application/json") //обновить услугу
     public Service updateService  (@RequestParam("index") int index, @RequestBody Service service){
         return serviceService.update(index,service);
     }

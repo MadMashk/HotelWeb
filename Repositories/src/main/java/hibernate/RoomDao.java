@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 @Component
-public class RoomDao implements IDao<Room>{ //todo create dao interface, restrictions, improve the code, change json
+public class RoomDao implements IDao<Room>{
     @Autowired
     private HibernateSessionFactoryUtil hibernateSessionFactoryUtil;
 

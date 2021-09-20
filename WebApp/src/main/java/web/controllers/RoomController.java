@@ -10,7 +10,7 @@ import service.RoomService;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/rooms") //TODO add dto and restrictions
+@RequestMapping(path = "/rooms")
 public class RoomController {
     @Autowired
     private RoomService roomService;

@@ -1,5 +1,4 @@
 package service;
-
 import exeptions.AlreadyExistsException;
 import exeptions.InputException;
 import exeptions.NotFoundException;
@@ -11,7 +10,6 @@ import model.constants.RoomStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -43,7 +41,10 @@ public class ClientService {
 
 
     public Client addClient(Client client) {
-        if (dao.getOne(client.getPassportNumber())!=null) {
+        nameCheck(client.getName());
+        passCheck(client.getPassportNumber());
+        phoneCheck(client.getPhoneNumber());
+        if (dao.getOne(client.getPassportNumber()) != null) {
             logger.error("such client already exist");
             alreadyExistsException();
         }
@@ -53,39 +54,39 @@ public class ClientService {
 
     public Client updateClient(String pass, Client client) {
         Client client1 = getClient(pass);
-                if (client.getPassportNumber()==null) {
-                    client.setPassportNumber(client1.getPassportNumber());
-                }
-            if (nameCheck(client.getName())) {
-                if (client.getName() == null) {
-                    client.setName(client1.getName());
-                }
+        if (client.getPassportNumber() == null) {
+            client.setPassportNumber(client1.getPassportNumber());
+        }
+        if (nameCheck(client.getName())) {
+            if (client.getName() == null) {
+                client.setName(client1.getName());
             }
-                if (client.getPhoneNumber()==null) {
-                        client.setPhoneNumber(client1.getPhoneNumber());
-                }
-                dao.save(client);
-                return client;
+        }
+        if (client.getPhoneNumber() == null) {
+            client.setPhoneNumber(client1.getPhoneNumber());
+        }
+        dao.save(client);
+        return client;
     }
 
     public void deleteClient(String pass) {
         dao.delete(getClient(pass));
     }
 
-    public Client getClient(String pass){
-        Client client =dao.getOne(pass);
-        if (client==null){
-            logger.error("A client with pass "+ pass +" doesn't exist");
+    public Client getClient(String pass) {
+        Client client = dao.getOne(pass);
+        if (client == null) {
+            logger.error("A client with pass " + pass + " doesn't exist");
             notFoundException();
         }
         return client;
     }
 
-    public List<Client> getAllClients(Integer sortType) { //все клиенты
-        if (sortType==3){
-        List<Client> clientList= new ArrayList<>();
-            for (int i = sortingNavigator.rentSort(1).size()-1; i > 0; i--) { //сортировка по дате отъезда
-                if (!clientList.contains(sortingNavigator.rentSort(1).get(i).getClient()) && clientList.size()!= sortingNavigator.clientSort(1).size()) {
+    public List < Client > getAllClients(Integer sortType) { //все клиенты
+        if (sortType == 3) {
+            List < Client > clientList = new ArrayList < > ();
+            for (int i = sortingNavigator.rentSort(1).size() - 1; i > 0; i--) { //сортировка по дате отъезда
+                if (!clientList.contains(sortingNavigator.rentSort(1).get(i).getClient()) && clientList.size() != sortingNavigator.clientSort(1).size()) {
                     clientList.add(sortingNavigator.rentSort(1).get(i).getClient());
                 }
             }
@@ -96,15 +97,6 @@ public class ClientService {
     }
 
 
-    public boolean checkPhoneOfClient(String phone) throws AlreadyExistsException { //проверка наличия номера телефона
-        for (int i = 0; i < dao.getAll().size(); i++) {
-            if (dao.getAll().get(i).getPhoneNumber().equals(phone)) {
-                alreadyExistsException();
-            }
-        }
-        return false;
-    }
-
     public void checkDate(String date) throws InputException {
         String datePattern;
         datePattern = "\\d{2}-\\d{2}-\\d{4}";
@@ -114,12 +106,14 @@ public class ClientService {
         }
     }
 
+
     public void checkDuration(int duration) throws InputException {
         if (duration < 1) {
             logger.error("wrong duration");
             inputException();
         }
     }
+
 
     public void setService(int index, String pass) { //добавление услуги клиенту
         Service service = serviceDao.getOne(index);
@@ -134,16 +128,18 @@ public class ClientService {
         gotServicesDao.save(gotServices);
     }
 
+
     public Date reformat(String date) throws ParseException {
         DateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");
         return simpleDateFormat.parse(date);
     }
 
+
     public Integer getPriceOfRent(String arrivalDate, String clientPass) throws ParseException { //вывод цены съемки комнаты определенного клиента по определенной дате
         Client client = getClient(clientPass);
-        List<Rent> rents = rentDao.getAll();
+        List < Rent > rents = rentDao.getAll();
         Date arrivalDateD = reformat(arrivalDate);
-        for (Rent rent : rents) {
+        for (Rent rent: rents) {
             if (rent.getArrivalDate().compareTo(arrivalDateD) == 0 && rent.getClient().getPassportNumber().equals(client.getPassportNumber())) {
                 return rent.getPrice();
             }
@@ -151,7 +147,8 @@ public class ClientService {
         return 0;
     }
 
-    public void setRoom(String clientPass, int roomNumber, String arrivalDate, int stayDuration) throws ParseException{ //добавление клиенту комнаты
+
+    public void setRoom(String clientPass, int roomNumber, String arrivalDate, int stayDuration) throws ParseException { //добавление клиенту комнаты
         checkDuration(stayDuration);
         checkDate(arrivalDate);
         Room room = roomDao.getOne(roomNumber);
@@ -169,37 +166,41 @@ public class ClientService {
         dao.save(client);
     }
 
-    public void unsetRoom(String clientPass){ //выселить из комнаты
+
+    public void unsetRoom(String clientPass) { //выселить из комнаты
         getClient(clientPass).setRoom(null);
     }
 
-    public ArrayList<GotServices> listGotServicesOfClient(String clientPass, int sortIndex) { //лист услуг определенного клиента
+
+    public ArrayList < GotServices > listGotServicesOfClient(String clientPass, int sortIndex) { //лист услуг определенного клиента
         Client client = getClient(clientPass);
-        List<GotServices> list = sortingNavigator.gotServicesSort(sortIndex);
-       ArrayList<GotServices> gotServicesOfThisClient = new ArrayList<>();
-        for (GotServices gotServices : list) {
+        List < GotServices > list = sortingNavigator.gotServicesSort(sortIndex);
+        ArrayList < GotServices > gotServicesOfThisClient = new ArrayList < > ();
+        for (GotServices gotServices: list) {
             if (gotServices.getClient().getPassportNumber().equals(client.getPassportNumber())) {
                 gotServicesOfThisClient.add(gotServices);
             }
         }
-       return gotServicesOfThisClient;
+        return gotServicesOfThisClient;
 
     }
 
-   public int totalPriceOfServices(String clientPass){ //общая стоимость услуг определенного клиента
-        Client client = getClient(clientPass);
-        List<GotServices> gotServices= gotServicesDao.getAll();
-        int totalPrice =0;
-        for (GotServices gotService : gotServices) {
-           if (gotService.getClient().getPassportNumber().equals(client.getPassportNumber())) {
-               totalPrice += gotService.getService().getPrice();
-           }
-       }
-       return totalPrice;
-   }
 
-    public int getQuantityOfClients(){ //общее число клиентов
-        int quantity=0;
+    public int totalPriceOfServices(String clientPass) { //общая стоимость услуг определенного клиента
+        Client client = getClient(clientPass);
+        List < GotServices > gotServices = gotServicesDao.getAll();
+        int totalPrice = 0;
+        for (GotServices gotService: gotServices) {
+            if (gotService.getClient().getPassportNumber().equals(client.getPassportNumber())) {
+                totalPrice += gotService.getService().getPrice();
+            }
+        }
+        return totalPrice;
+    }
+
+
+    public int getQuantityOfClients() { //общее число клиентов
+        int quantity = 0;
         for (int i = 0; i < dao.getAll().size(); i++) {
             quantity++;
         }
@@ -208,37 +209,51 @@ public class ClientService {
 
 
     public boolean nameCheck(String name) throws InputException { //проверка на правильность имени
-     if (name.trim().length()==0 || !name.toLowerCase(Locale.ROOT).matches(("[a-z]+"))) {
-         logger.error("the name is incorrect");
-         inputException();
-     }
-            return true;
+        if (name.trim().length() == 0 || !name.toLowerCase(Locale.ROOT).matches(("[a-z]+"))) {
+            logger.error("the name is incorrect");
+            inputException();
+        }
+        return true;
     }
 
-    public boolean passCheck(String pass) throws InputException {
+
+    public void passCheck(String pass) throws InputException {
         if (pass.trim().length() != 9) {
+            logger.error("pass must be 9 digits");
             inputException();
         }
-            return true;
-    }
-  public boolean phoneCheck(String phone) throws  InputException{
-        if (phone.trim().length() != 11){
-            inputException();
-        }
-            return true;
-  }
 
-    public void alreadyExistsException() throws AlreadyExistsException{
+    }
+
+
+    public void phoneCheck(String phone) throws InputException {
+        for (int i = 0; i < dao.getAll().size(); i++) {
+            if (dao.getAll().get(i).getPhoneNumber().equals(phone)) {
+                logger.error("client with such a phone number already exists");
+                alreadyExistsException();
+            }
+        }
+        if (phone.trim().length() != 11) {
+            logger.error("phone must be 11 digits");
+            inputException();
+        }
+    }
+
+
+
+    public void alreadyExistsException() throws AlreadyExistsException {
         throw new AlreadyExistsException();
     }
+
+
     public void inputException() throws InputException {
         throw new InputException();
     }
-    public void notFoundException()throws NotFoundException{
+
+
+    public void notFoundException() throws NotFoundException {
         throw new NotFoundException();
     }
-
-
 
 }
 

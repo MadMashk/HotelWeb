@@ -1,13 +1,8 @@
 package web.controllers;
 
-import exeptions.AlreadyExistsException;
-import exeptions.InputException;
-import exeptions.NotFoundException;
 import lombok.SneakyThrows;
 import model.Client;
 import model.GotServices;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import service.ClientService;
@@ -35,7 +30,7 @@ public class ClientController {
     }
 
     @RequestMapping(value = "/", method = RequestMethod.PUT,headers = "Accept=application/json" )//обновить клиента
-    public Client update(@RequestParam("id") String pass, @RequestBody Client client) {
+    public Client update(@RequestParam("pass") String pass, @RequestBody Client client) {
             return clientService.updateClient(pass,client);
     }
     @RequestMapping(value = "/", method = RequestMethod.DELETE,headers = "Accept=application/json" )   //удалить клиента
