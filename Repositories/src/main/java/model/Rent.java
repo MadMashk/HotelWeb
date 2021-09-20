@@ -1,5 +1,7 @@
 package model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import javax.persistence.*;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -21,6 +23,7 @@ public class Rent {
     @OneToOne(fetch = FetchType.EAGER)
     private Room room;
     @Column(name = "arrivaldate")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private Date arrivalDate;
     @Column(name = "departuredate")
     private Date departureDate;

@@ -1,5 +1,7 @@
 package model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -17,6 +19,7 @@ public class GotServices {
     @OneToOne(fetch = FetchType.EAGER)
     private Client client;
     @Column(name = "date")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private  Date date;
     @Column(name = "nameofservice")
     private String nameOfService;

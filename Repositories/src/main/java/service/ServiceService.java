@@ -3,73 +3,86 @@ package service;
 import exeptions.AlreadyExistsException;
 import exeptions.InputException;
 import exeptions.NotFoundException;
-import hibernate.IDao;
+import hibernate.ServiceDao;
+import hibernate.sortings.SortingNavigator;
+import lombok.Getter;
 import model.Service;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 @org.springframework.stereotype.Service
+
 public class ServiceService {
 @Autowired
-private IDao dao;
+@Getter
+private ServiceDao dao;
+@Autowired
+private SortingNavigator sortingNavigator;
+private static final Logger logger = LogManager.getLogger(RoomService.class);
     public ServiceService() {
 
     }
 
-     public boolean checkService(int index) throws AlreadyExistsException {
-         for (int i = 0; i <dao.getAll(Service.class).size(); i++) {
-             if(dao.getAll(Service.class).get(i).getIndex()==index){
-                alreadyExistsException();
-             }
+     public void checkService(int index) throws AlreadyExistsException {
+         Service service = dao.getOne(index);
+         if (service!=null){
+             logger.error("service already exists");
+             alreadyExistsException();
          }
-         return false;
      }
-     public boolean checkServiceName(String name) throws InputException {
+     public void checkServiceName(String name) throws InputException {
         if(name.trim().length()==0){
+            logger.error("wrong name");
             inputException();
         }
-        return true;
      }
-     public boolean nullCheck(int number) throws  InputException{
-        if(number<=0){
-            inputException();
-        }
-        return false;
-     }
-     public boolean serviceAbsenceCheck( int index) throws NotFoundException {
-         Stream<Service> stream =dao.getAll(Service.class).stream();
-         boolean match = stream.anyMatch(service -> service.getIndex()==index);
-         if(!match){
+
+     public Service getService( int index)  {
+         Service service = dao.getOne(index);
+         if(service==null){
+             logger.error("service not found");
              notFoundException();
          }
-         return match;
+         return service;
      }
 
-     public void serviceByPriceComparator(List<Service> services){
-         services.stream().sorted(Comparator.comparing(Service::getPrice).thenComparing(Service::getIndex)).collect(Collectors.toCollection(ArrayList<Service>::new));
-     }
-    public void serviceByIndexComparator(List<Service> services){
-        services.stream().sorted(Comparator.comparing(Service::getIndex).thenComparing(Service::getPrice)).collect(Collectors.toCollection(ArrayList<Service>::new));
+    public List<Service> getAllServices(Integer sortIndex){
+       return  sortingNavigator.serviceSort(sortIndex);
     }
+    public Service addService(Service service){ //добавление новой услуги
+        checkService(service.getIndex());
+        checkServiceName(service.getName());
 
-    public List<Service> getAllServices(){
-       return  dao.getAll(Service.class);
-    }
-    public Service  saveOrAddService(Service service){ //добавление новой услуги
         dao.save(service);
         return service;
     }
-    public void changePrice(int index, int price){
-        for (int i = 0; i < dao.getAll(Service.class).size(); i++) {
-            if(dao.getAll(Service.class).get(i).getIndex()==index){
-                dao.getAll(Service.class).get(i).setPrice(price);
-            }
 
-        }
+
+    public Service update(int index, Service service) {
+        Service service1 = getService(index);
+
+
+                if (service.getPrice() == null) {
+                    service.setPrice(service1.getPrice());
+                }
+
+                if (service.getName() == null) {
+                    service.setName(service1.getName());
+                }
+
+                if (service.getIndex()== null) {
+                    service.setIndex(service1.getIndex());
+                }
+                dao.save(service);
+                return service;
+
+    }
+
+    public void deleteService (int index) {
+       dao.delete(getService(index));
     }
 
     public void alreadyExistsException() throws AlreadyExistsException {

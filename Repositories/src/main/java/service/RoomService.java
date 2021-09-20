@@ -3,132 +3,143 @@ package service;
 import exeptions.AlreadyExistsException;
 import exeptions.InputException;
 import exeptions.NotFoundException;
-import hibernate.IDao;
+import hibernate.RentDao;
+import hibernate.RoomDao;
+import hibernate.sortings.SortingNavigator;
+import lombok.Getter;
 import model.Client;
 import model.Rent;
 import model.Room;
 import model.constants.RoomStatus;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
 @Service
 public class RoomService {
+
 @Autowired
-    private IDao dao;
+@Getter
+    private RoomDao dao;
+@Autowired
+ private RentDao rentDao;
+    @Value("${quantityOfClients}")
+    private String quantityOfClients;
+    @Value("${changeRoomStatus}")
+    private String changeRoomStatus;
+    @Autowired
+    private SortingNavigator sortingNavigator;
+    private static final Logger logger = LogManager.getLogger(RoomService.class);
     public RoomService(){
     }
 
-    public void roomsByPriceComparator(List<Room> rooms){
-        rooms.stream().sorted(Comparator.comparing(Room::getPrice).thenComparing(Room::getNumber)).collect(Collectors.toCollection(ArrayList<Room>::new));
+    public void setQuantityOfClients(String quantityOfClients) {
+        this.quantityOfClients=quantityOfClients;
 
     }
-    public void roomsByStarsComparator(List<Room> rooms){
-        rooms.stream().sorted(Comparator.comparing(Room::getStarsQuantity).thenComparing(Room::getNumber)).collect(Collectors.toCollection(ArrayList<Room>::new));
-    }
-    public void roomsByCapacityComparator(List<Room> rooms){
-        rooms.stream().sorted(Comparator.comparing(Room::getCapacity).thenComparing(Room::getNumber)).collect(Collectors.toCollection(ArrayList<Room>::new));
-    }
-    public void printRentArrayList(List<Rent> rents) {
-        for (Rent rent : rents) {
-            System.out.println("Client " + rent.getClient() + " Arrival date " + rent.getArrivalDate() + " Departure date " + rent.getDepartureDate());
-        }
-    }
+
+
     public Date reformat(String date) throws ParseException {
         DateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");
         return simpleDateFormat.parse(date);
     }
 
-    public List<Room> getFreeRooms(){
+    public List<Room> getFreeRooms(int sortIndex){
         List<Room> roomList = new ArrayList<>();
-        for (int i = 0; i < dao.getAll(Room.class).size(); i++) {
-            if (dao.getAll(Room.class).get(i).getStatus()== RoomStatus.FREE) {
-                roomList.add(dao.getAll(Room.class).get(i));
+        for (int i = 0; i < sortingNavigator.roomSort(sortIndex).size(); i++) {
+            if (sortingNavigator.roomSort(sortIndex).get(i).getStatus()== RoomStatus.FREE) {
+                roomList.add(sortingNavigator.roomSort(sortIndex).get(i));
             }
         }
         return roomList;
     }
-    public List<Room> getRooms(){
-        return dao.getAll(Room.class);
+
+    public List<Room> getRooms(Integer sortIndex){
+        return sortingNavigator.roomSort(sortIndex);
     }
 
-    public Room addOrSaveRoom(Room room) {
+    public Room addRoom(Room room) {
+        roomAbsenceCheck(room.getNumber());
         dao.save(room);
         return room;
     }
+     public Room updateRoom(int number, Room room){
+        Room room1 = getRoom(number);
+        priceCheck(room.getPrice(),room.getStarsQuantity(),room.getCapacity());
+
+
+                if ( changeRoomStatus.equals("false")) {
+                    System.out.println("you can not change the room status");
+                    room.setStatus(room1.getStatus());
+                }
+                if (room.getStatus() == null) {
+                    room.setStatus(room1.getStatus());
+                }
+                if (room.getCapacity() == null) {
+                    room.setCapacity(room1.getCapacity());
+                }
+                if (room.getPrice() == null) {
+                    room.setPrice(room1.getPrice());
+                }
+                if (room.getStarsQuantity() == null)   {
+                    room.setStarsQuantity(room1.getStarsQuantity());
+                }
+
+                    dao.save(room);
+                    return room;
+    }
+
 
     public void deleteRoom(int number) {
-        for (int i = 0; i < dao.getAll(Room.class).size(); i++) {
-            if (dao.getAll(Room.class).get(i).getNumber()==number) {
-                dao.delete(dao.getAll(Room.class).get(i));
-            }
-        }
-
+        dao.delete(getRoom(number));
     }
 
    public Integer getFreeRoomQuantity(){ //количество свободных номеров
         int quantity=0;
-       for (int i = 0; i < dao.getAll(Room.class).size(); i++) {
-           if (dao.getAll(Room.class).get(i).getStatus() == RoomStatus.FREE) {
+       for (int i = 0; i < dao.getAll().size(); i++) {
+           if (dao.getAll().get(i).getStatus() == RoomStatus.FREE) {
                quantity++;
            }
        }
        return quantity;
    }
-    public boolean capacityCheck(int capacity) throws InputException {
-        if (capacity<1 || capacity>7) {
-            inputException();
-        }
-        return true;
-    }
-    public  boolean starsQuantityCheck(int starsQuantity) throws InputException {
-        if (starsQuantity<1 || starsQuantity>3){
-            inputException();
-        }
-        return true;
-    }
-    public boolean priceCheck(int priceOfNewRoom, int starsQuantityOfNewRoom, int capacityOfNewRoom) throws InputException{
+
+    public void priceCheck(int priceOfNewRoom, int starsQuantityOfNewRoom, int capacityOfNewRoom) throws InputException{
         if (starsQuantityOfNewRoom==1 && priceOfNewRoom<(1000*capacityOfNewRoom) ||starsQuantityOfNewRoom==2 && priceOfNewRoom<(2000*capacityOfNewRoom) || starsQuantityOfNewRoom==3 && priceOfNewRoom<(3000*capacityOfNewRoom)){
+            logger.error("wrong price");
             inputException();
         }
-        return true;
     }
 
-    public boolean roomCheck(int number) throws AlreadyExistsException {
-        for (int i = 0; i < dao.getAll(Room.class).size(); i++) { //проверка наличия комнаты
-            if (dao.getAll(Room.class).get(i).getNumber()==number){
-                alreadyExistsException();
+    public Room getRoom(int number)  {
+        Room room = dao.getOne(number);
+            if (room==null) {
+                logger.error("room not found");
+                notFoundException();
             }
-        }
-        return false;
-    }
-    public  boolean roomAbsenceCheck(int number) throws NotFoundException { //проверка отсутствия комнаты
-        Stream<Room> stream = dao.getAll(Room.class).stream();
-        boolean match = stream.anyMatch(room -> room.getNumber()==number);
-        if(!match){
-            notFoundException();
-        }
-
-        return match;
+            return room;
     }
 
-    public Room getRoomPerNumber(int number){ //получение комнаты по номеру
-        for (Room room : dao.getAll(Room.class)) {
-            if (room.getNumber() == number) {
-                return room;
-            }
+    public  void roomAbsenceCheck(int number)  { //проверка отсутствия комнаты
+        Room room = dao.getOne(number);
+        if(room!=null) {
+            logger.error("such a room already exists");
+            alreadyExistsException();
         }
-        return null;
     }
+
 
 
     public List<Room> checkFreeRoomsByDate( String searchDate, int dateRange ) throws ParseException { // проверка наличия комнаты по опредленному диапазону дат в будущем
-        List<Rent> rentList =dao.getAll(Rent.class);
-        List<Room> listRoom= dao.getAll(Room.class);
+        List<Rent> rentList =rentDao.getAll();
+        List<Room> listRoom= dao.getAll();
         List<Room> listFreeRoom = new ArrayList<>();
         Date todayDate = new Date();
         if (reformat(searchDate).compareTo(todayDate) > 0) {
@@ -170,30 +181,20 @@ public class RoomService {
         }
     }
 
-    public void changeStatusRoom(int roomNumber,RoomStatus status){ //изменить статус комнаты
-        Room room=getRoomPerNumber(roomNumber);
-        room.setStatus(status);
-    }
 
-    public List<Client> getLastClientsOfRoom(int roomNumber, int quantity) { //последние  клиенты определенной комнаты и их даты прибывания
-        List<Client> clientList=null;
+    public List<Client> getLastClientsOfRoom(int roomNumber) { //последние  клиенты определенной комнаты
+        List<Client> clientList=new ArrayList<>();
+        Room room = getRoom(roomNumber);
         int number = 0;
-        for (int i = dao.getAll(Rent.class).size() - 1; i >= 0 && number < quantity; i--) {
-            if (dao.getAll(Rent.class).get(i).getRoom().getNumber() == roomNumber) {
-                clientList.add(dao.getAll(Rent.class).get(i).getClient());
+        for (int i = rentDao.getAll().size() - 1; i >= 0 && number < Integer.parseInt(quantityOfClients); i--) {
+            if (rentDao.getAll().get(i).getRoom().getNumber().equals(room.getNumber())) {
+                clientList.add(rentDao.getAll().get(i).getClient());
                 number++;
             }
         }
         return clientList;
     }
 
-    public void changePrice(int roomNumber, int newPrice){ //изменение цены
-        for (int i = 0; i < dao.getAll(Room.class).size(); i++) {
-            if (dao.getAll(Room.class).get(i).getNumber()==roomNumber){
-                dao.getAll(Room.class).get(i).setPrice(newPrice);
-            }
-        }
-    }
 
     public void alreadyExistsException() throws AlreadyExistsException {
         throw new AlreadyExistsException();

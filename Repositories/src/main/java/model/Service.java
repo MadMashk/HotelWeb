@@ -27,11 +27,11 @@ public class Service  {
         return name;
     }
 
-    public int getPrice() {
+    public Integer getPrice() {
         return price;
     }
 
-    public int getIndex() {
+    public Integer getIndex() {
         return index;
     }
 

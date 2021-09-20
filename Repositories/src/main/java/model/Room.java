@@ -1,6 +1,7 @@
 package model;
 
 import model.constants.RoomStatus;
+import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
 @Entity
@@ -11,10 +12,13 @@ public class Room  {
     @Column(name = "room_number")
     private Integer number;
     @Column(name = "capacity")
+    @Length(min = 1, max = 9)
     private Integer capacity;
     @Column(name = "starsquantity")
+    @Length(min = 1, max = 3)
     private Integer starsQuantity;
     @Column(name = "price")
+    @Length(min = 1000)
     private Integer price;
     @Column(name = "status")
     private RoomStatus status;
@@ -49,19 +53,19 @@ public class Room  {
         this.starsQuantity = starsQuantity;
     }
 
-    public int getNumber() {
+    public Integer getNumber() {
         return number;
     }
 
-    public int getPrice() {
+    public Integer getPrice() {
         return price;
     }
 
-    public int getCapacity() {
+    public Integer getCapacity() {
         return capacity;
     }
 
-    public int getStarsQuantity() {
+    public Integer getStarsQuantity() {
         return starsQuantity;
     }
 

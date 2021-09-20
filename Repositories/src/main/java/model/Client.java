@@ -8,9 +8,9 @@ public class Client {
     @Column(name = "name")
     private String name;
     @Id
-    @Column(name = "passnum")
+    @Column(name = "passnum", length = 9)
     private String passportNumber;
-    @Column(name = "phonenumber")
+    @Column(name = "phonenumber", length = 11)
     private String phoneNumber;
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="room_number")

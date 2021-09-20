@@ -1,6 +1,10 @@
 package exeptions;
 
-public class InputException extends Exception{
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(value= HttpStatus.UNPROCESSABLE_ENTITY, reason="wrong input")
+public class InputException extends RuntimeException{
     public InputException(){
 
     }

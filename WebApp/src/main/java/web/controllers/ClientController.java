@@ -1,8 +1,13 @@
 package web.controllers;
 
+import exeptions.AlreadyExistsException;
+import exeptions.InputException;
+import exeptions.NotFoundException;
 import lombok.SneakyThrows;
 import model.Client;
 import model.GotServices;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import service.ClientService;
@@ -16,21 +21,23 @@ public class ClientController {
     @Autowired
     private ClientService clientService;
 
+
+
     @RequestMapping(value = "/", method = RequestMethod.GET, headers = "Accept=application/json")   //получение списка клиентов
-    public List<Client> getClients() {
-        return clientService.getAllClients();
+    public List<Client> getClients(@RequestParam("sortType") Integer sortType) {
+        return clientService.getAllClients(sortType);
     }
+
 
     @RequestMapping(value = "/", method = RequestMethod.POST, headers = "Accept=application/json")  //добавление клиента
     public Client add(@RequestBody Client client) {
         return clientService.addClient(client);
     }
 
-    @RequestMapping(value = "/", method = RequestMethod.PUT,headers = "Accept=application/json" )//обновить клиента ПЕРЕДЕЛАТЬ
-    public Client update(@RequestBody Client client) {
-            return clientService.updateClient(client);
+    @RequestMapping(value = "/", method = RequestMethod.PUT,headers = "Accept=application/json" )//обновить клиента
+    public Client update(@RequestParam("id") String pass, @RequestBody Client client) {
+            return clientService.updateClient(pass,client);
     }
-
     @RequestMapping(value = "/", method = RequestMethod.DELETE,headers = "Accept=application/json" )   //удалить клиента
     public void delete (@RequestParam("pass") String pass) {
         clientService.deleteClient(pass);
@@ -48,8 +55,9 @@ public class ClientController {
     }
 
     @SneakyThrows
-    @RequestMapping(value = "/setRoom", method = RequestMethod.POST)    //добавление комнаты клиенту ПЕРЕДЕЛАТЬ
+    @RequestMapping(value = "/setRoom", method = RequestMethod.POST)    // добавление комнаты клиенту
     public void setRoom(@RequestParam("roomNumber") int roomNumber, @RequestParam("pass") String pass, @RequestParam("date") String date, @RequestParam("duration") int duration){
+
         clientService.setRoom(pass,roomNumber,date,duration);
     }
 
@@ -58,12 +66,12 @@ public class ClientController {
         clientService.setService(serviceIndex,pass);
     }
 
-    @RequestMapping(value = "/services", method = RequestMethod.GET, headers = "Accept=application/json")   //полученные услуги ПЕРЕДЕЛАТЬ
-    public List<GotServices> getServicesList(@RequestParam("pass") String pass){
-        return clientService.listGotServicesOfClient(pass);
+    @RequestMapping(value = "/services", method = RequestMethod.GET, headers = "Accept=application/json")   //полученные услуги
+    public List<GotServices> getServicesList(@RequestParam("pass") String pass, @RequestParam int sortIndex){
+        return clientService.listGotServicesOfClient(pass,sortIndex);
     }
 
-    @RequestMapping(value = "/services/total-price", method = RequestMethod.GET, headers = "Accept=application/json")   //общая цена услуг ПЕРЕДЕЛАТЬ
+    @RequestMapping(value = "/services/total-price", method = RequestMethod.GET, headers = "Accept=application/json")   //общая цена услуг
     public int getTotalPrice(@RequestParam("pass") String pass){
         return clientService.totalPriceOfServices(pass);
     }
@@ -73,8 +81,9 @@ public class ClientController {
         clientService.unsetRoom(pass);
     }
 
-    @RequestMapping(value = "/info", method = RequestMethod.GET) //информация ПЕРЕДЕЛАТЬ
+
+    @RequestMapping(value = "/info", method = RequestMethod.GET) //информация
     public Client getInfo(@RequestParam ("pass") String pass) {
-       return clientService.getClientByPass(pass);
+       return clientService.getClient(pass);
     }
 }
